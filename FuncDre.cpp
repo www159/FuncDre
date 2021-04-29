@@ -3,16 +3,25 @@
 
 #include"FuncLoader.h"
 #include"AbsFuncWriter.h"
+#include"AbsFuncReducer.h"
 #include<iostream>
 using namespace FuncDre;
 int main()
 {
     FuncLoader* funLoader = new FuncLoader;
-    std::string s = "5x+4+x*x^3*(4x+3)*x^2";
+    std::string s = "4sin(4x+5x+6x)/999-sin(15x)";
+
     funLoader->load(s);
     AbsFuncBlock* absFuncBlock = funLoader->getFinalFunc();
+
     AbsFuncWriter* fw = new AbsFuncWriter;
     std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
+    
+    AbsFuncReducer* afr = new AbsFuncReducer;
+    afr->reduc(absFuncBlock);
+    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
+    
+    delete afr;
     delete funLoader;
     delete absFuncBlock;
     delete fw;

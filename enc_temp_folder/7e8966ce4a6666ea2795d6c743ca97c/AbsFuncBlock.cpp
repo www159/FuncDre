@@ -92,7 +92,6 @@ namespace FuncDre {
 			delete* it;
 		}
 		delete FuncContainer;
-		delete pureHash;
 	}
 
 	int OperFuncBlock::hashCode() {
@@ -103,6 +102,16 @@ namespace FuncDre {
 		hash = new int;
 		std::list<AbsFuncBlock*>::iterator it = FuncContainer->begin();
 		char c = 0;
+		if (tag == ADDBLOCK) {
+			c = '+';
+		}
+		if (tag == MULTBLOCK) {
+			c = '*';
+			while((*it)->getTag() == CONBLOCK) {//TODO 测试while和if的区别
+				it++;//乘法hashcode需要忽略系数
+			}
+			
+		}
 		*hash = c;
 		while (it != FuncContainer->end()) {
 			*hash = (*hash << 4) ^ (*hash >> 28) ^ (*it)->hashCode();

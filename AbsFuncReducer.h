@@ -11,6 +11,7 @@
 */
 #include "AbsFuncBlock.h"
 #include<map>
+#include<math.h>
 namespace FuncDre{
 	//乘法常系数合并，根据tag排序
 	//之后进行加法排序
@@ -22,24 +23,29 @@ public:
 	AbsFuncReducer();
 
 	~AbsFuncReducer();
+	//外部交流接口
+	void reduc(AbsFuncBlock*&);
 
 private:
 
-	typedef void(AbsFuncReducer::* ReMode)(AbsFuncBlock*);
+	typedef void(AbsFuncReducer::* ReMode)(AbsFuncBlock*&);
 
 	std::map<int, ReMode>* simpMap;
+
 	//加法化简器
-	void addSimplize(AbsFuncBlock*);
+	void addSimplify(AbsFuncBlock*&);
 	//乘法化简器
-	void multSimplize(AbsFuncBlock*);
+	void multSimplify(AbsFuncBlock*&);
 	//幂指化简器
-	void pwrSimplize(AbsFuncBlock*);
+	void pwrSimplify(AbsFuncBlock*&);
 	//复合化简器
-	void comSimplize(AbsFuncBlock*);
+	void comSimplify(AbsFuncBlock*&);
 	//乘法有系数吗？
-	bool hasCon(AbsFuncBlock*);
+	bool hasCon(AbsFuncBlock*&);
 	//是不是基本元素？
-	bool isBas(AbsFuncBlock*);
+	bool isBas(AbsFuncBlock*&);
+	//一般退化检查
+	void backward(AbsFuncBlock*&);
 };
 }
 

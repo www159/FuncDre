@@ -53,6 +53,9 @@ namespace FuncDre {
 					}
 				}
 				else {
+					if (it == funcContainer->begin()) {
+						break;
+					}
 					str = str + "+";
 				}
 				break;
@@ -96,7 +99,9 @@ namespace FuncDre {
 					else {
 						(this->*writerContainer[tag])(*it, str);
 					}
-					str = str + "*";
+				}
+				else {
+					(this->*writerContainer[tag])(*it, str);
 				}
 				break;
 			}
@@ -105,10 +110,9 @@ namespace FuncDre {
 				break;
 			}
 			}
-			
-			if (str[str.length() - 1] == '*') {
-				str.erase(str.length() - 1, 1);
-			}
+		}
+		if (str[str.length() - 1] == '*') {
+			str.erase(str.length() - 1, 1);
 		}
 	}
 
@@ -156,6 +160,10 @@ namespace FuncDre {
 				(this->*writerContainer[tag])(subFunc, str);
 				str = str + ")";
 			}
+			else {
+				(this->*writerContainer[tag])(subFunc, str);
+			}
+			break;
 		}
 		default: {
 			(this->*writerContainer[tag])(subFunc, str);

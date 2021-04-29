@@ -90,8 +90,6 @@ namespace FuncDre {
 
 		int hashCode() override;
 
-		int pureHashCode();
-
 		//外界获得作用域。
 		std::list<AbsFuncBlock*>* getContainer();
 
@@ -100,11 +98,9 @@ namespace FuncDre {
 
 		OperFuncBlock* copy();
 
-	private:
+	protected:
 
 		std::list<AbsFuncBlock*>* FuncContainer;
-
-		int* pureHash;
 
 	};
 
