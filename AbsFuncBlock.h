@@ -4,6 +4,7 @@
 #include"Hashable.h"
 #include"TransForm.h"
 #include"Clonable.h"
+#include"ClearHash.h"
 namespace FuncDre {
 #define DEFAULTTAG     -1			//默认标签，用于初始化
 #define CONBLOCK        0			//常数，无复合运算
@@ -25,7 +26,7 @@ namespace FuncDre {
 	*没多大作用，只是存容器方便。
 	*可以囊括常数块和基本块
 	*/
-	class AbsFuncBlock : public Hashable, public Clonable<AbsFuncBlock*>
+	class AbsFuncBlock : public Hashable, public Clonable<AbsFuncBlock*>, public ClearHash
 	{
 	public:
 
@@ -39,13 +40,17 @@ namespace FuncDre {
 
 		void setTag(int tag);
 
-		AbsFuncBlock* copy();
+		AbsFuncBlock* copy() override;
+
+		virtual void clear() override;
 
 	protected:
 		
 		int tag = DEFAULTTAG;//该块的类型，是基块还是运算块
 
 		int* hash = NULL;
+
+		const int pr = 1e9 + 7;
 
 	};
 
@@ -66,7 +71,7 @@ namespace FuncDre {
 
 		void setNum(double num);
 
-		ConFuncBlock* copy();
+		ConFuncBlock* copy() override;
 
 	private:
 
@@ -80,17 +85,15 @@ namespace FuncDre {
 	*	通用运算函数块，只有一组作用域。
 	*	数据结构是链表，支持快速删除操作
 	*/
-	class OperFuncBlock:public AbsFuncBlock, public Clonable<OperFuncBlock*> {
+	class AddFuncBlock:public AbsFuncBlock, public Clonable<AddFuncBlock*> {
 
 	public:
 
-		OperFuncBlock();
+		AddFuncBlock();
 
-		~OperFuncBlock();
+		virtual ~AddFuncBlock();
 
 		int hashCode() override;
-
-		int pureHashCode();
 
 		//外界获得作用域。
 		std::list<AbsFuncBlock*>* getContainer();
@@ -98,18 +101,36 @@ namespace FuncDre {
 		//向作用域中增加函数。
 		void addFunc(AbsFuncBlock* absFuncBlock);
 
-		OperFuncBlock* copy();
+		AddFuncBlock* copy() override;
 
-	private:
+	protected:
 
 		std::list<AbsFuncBlock*>* FuncContainer;
-
-		int* pureHash;
 
 	};
 
 
 
+	/*
+	*	乘法块，储存一个纯hash，重构快乐。
+	*/
+	class MultFuncBlock :public AddFuncBlock, public Clonable<MultFuncBlock*> {
+	public:
+
+		MultFuncBlock();
+
+		~MultFuncBlock();
+
+		int pureHashCode();
+
+		MultFuncBlock* copy() override;
+
+		void clear() override;
+
+	private:
+
+		int* pureHash;//纯hash，继承父辈的接口，与clonable不同
+	};
 	/*
 	*	复合块，包装用。
 	*/
@@ -145,7 +166,7 @@ namespace FuncDre {
 
 		GnlFuncBlock();
 
-		~GnlFuncBlock();
+		virtual ~GnlFuncBlock();
 
 		int hashCode() override;
 
@@ -161,11 +182,31 @@ namespace FuncDre {
 
 		GnlFuncBlock* copy();
 
-	private:
+	protected:
 		
 		AbsFuncBlock* bottomBlock;//下运算函数块
 
 		AbsFuncBlock* topBlock;//上运算函数块
+
+	};
+
+	class UniPwrBlock : public GnlFuncBlock, public Clonable<UniPwrBlock*>{//根据tag分
+
+	public:
+
+		UniPwrBlock();
+
+		~UniPwrBlock();
+
+		int pureHashCode();
+
+		UniPwrBlock* copy() override;
+
+		void clear() override;
+
+	private:
+
+		int* pureHash;
 
 	};
 }

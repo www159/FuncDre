@@ -70,9 +70,9 @@ namespace FuncDre {
 
 		std::queue<int>* bacQue;				//存后缀表达式的list,当bacQue用。
 
-		std::stack<OperFuncBlock*>* AddStack;	//存加法块的临时栈。
+		std::stack<AddFuncBlock*>* AddStack;	//存加法块的临时栈。
 
-		std::stack<OperFuncBlock*>* MulStack;	//存乘法块的临时栈。
+		std::stack<MultFuncBlock*>* MulStack;	//存乘法块的临时栈。
 
 
 		//第一次转化，利用正则表达式得到顺序常数队列，并添加完全乘号。

@@ -65,5 +65,8 @@
     <ClInclude Include="Clonable.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ClearHash.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

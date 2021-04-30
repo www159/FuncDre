@@ -23,7 +23,6 @@ namespace FuncDre {
 
 	void AbsFuncReducer::reduc(AbsFuncBlock*& absFuncBlock) {
 		(this->*simpMap->at(absFuncBlock->getTag()))(absFuncBlock);
-		backward(absFuncBlock);//退化检查
 	}
 
 	/*
@@ -32,7 +31,7 @@ namespace FuncDre {
 	*	加法退化将放在下一个版本中实现。
 	*/
 	void AbsFuncReducer::addSimplify(AbsFuncBlock*& absFuncBlock) {
-		auto addFuncBlock = static_cast<OperFuncBlock*>(absFuncBlock);
+		auto addFuncBlock = static_cast<AddFuncBlock*>(absFuncBlock);
 		auto funcContainer = addFuncBlock->getContainer();
 	
 		for (auto& it : *funcContainer) {//大爱auto
@@ -43,10 +42,11 @@ namespace FuncDre {
 		}
 
 		//lambda表达式
-		funcContainer->sort([](AbsFuncBlock* const absFuncBlock1, AbsFuncBlock* const absFuncBlock2)
+		funcContainer->sort([=](AbsFuncBlock* absFuncBlock1, AbsFuncBlock* absFuncBlock2)->int
 			{
 				if (absFuncBlock1->getTag() == absFuncBlock2->getTag()) {//保证同底乘法并排，常数并排
-					return absFuncBlock1->hashCode() < absFuncBlock2->hashCode();
+					
+					return getPureHash(absFuncBlock1) < getPureHash(absFuncBlock2);
 				}
 				else {
 					return absFuncBlock1->getTag() < absFuncBlock2->getTag();
@@ -70,61 +70,47 @@ namespace FuncDre {
 				funcContainer->erase(lastIt);
 			}
 
-			else if ((*lastIt)->hashCode() == (*it)->hashCode()) {//如果除系数外完全一致
+			else if ((*lastIt)->getTag() == (*it)->getTag() && getPureHash(*it) == getPureHash(*lastIt)) {//如果除系数外完全一致
 				//那么就要区分是否带系数。
 				bool lastHasCon = hasCon(*lastIt),
 					tHasCon = hasCon(*it),
 					pwrNotSame = false;
-				switch ((*it)->getTag()) {
-				case CONPWRBLOCK: {//判断完全相同
-					if (static_cast<GnlFuncBlock*>(*lastIt)->getTopFunc()->hashCode() != static_cast<GnlFuncBlock*>(*it)->getTopFunc()->hashCode()) {
-						pwrNotSame = true;
-					}
-					break;
-				}
-				case BASBLOCK: {
-					if (static_cast<GnlFuncBlock*>(*lastIt)->getBottomFunc()->hashCode() != static_cast<GnlFuncBlock*>(*it)->getBottomFunc()->hashCode()) {
-						pwrNotSame = true;
-					}
-					break;
-				}
-				default:break;
-				}
-				if (!pwrNotSame) {
-					if (lastHasCon && tHasCon) {
-						auto lastCon = static_cast<ConFuncBlock*>(static_cast<OperFuncBlock*>(*lastIt)->getContainer()->front());
-						auto tCon = static_cast<ConFuncBlock*>(static_cast<OperFuncBlock*>(*it)->getContainer()->front());
-						tCon->setNum(lastCon->getNum() + tCon->getNum());
-						delete* lastIt;
-						funcContainer->erase(lastIt);
+				if (lastHasCon && tHasCon) {//如果都有系数，那都是乘法
+					auto lastCon = static_cast<ConFuncBlock*>(static_cast<MultFuncBlock*>(*lastIt)->getContainer()->front());
+					auto tCon = static_cast<ConFuncBlock*>(static_cast<MultFuncBlock*>(*it)->getContainer()->front());
+					tCon->setNum(lastCon->getNum() + tCon->getNum());//未经深拷贝直接修改
+					lastCon->clear();//修改后清空两个hash
+					delete* lastIt;
+					funcContainer->erase(lastIt);
 
-					}
-					else if (lastHasCon) {
-						auto lastCon = static_cast<ConFuncBlock*>(static_cast<OperFuncBlock*>(*lastIt)->getContainer()->front());
-						lastCon->setNum(lastCon->getNum() + 1.0);
-						delete* it;
-						funcContainer->erase(it);
-						it = lastIt;
-					}
-					else if (tHasCon) {
-						auto tCon = static_cast<ConFuncBlock*>(static_cast<OperFuncBlock*>(*it)->getContainer()->front());
-						tCon->setNum(tCon->getNum() + 1.0);
-						delete* lastIt;
-						funcContainer->erase(lastIt);
-					}
-					else {//如果两个都没有常系数，那么直接生成
-						OperFuncBlock* multFunc = new OperFuncBlock;
-						multFunc->setTag(MULTBLOCK);
-						ConFuncBlock* conFunc = new ConFuncBlock;
-						conFunc->setTag(CONBLOCK);
-						conFunc->setNum(2.0);
-						multFunc->addFunc(conFunc);
-						multFunc->addFunc(*it);
-						delete* lastIt;//删去前一个
-						funcContainer->erase(lastIt);
-						*it = multFunc;//将it替换成multFunc
+				}
+				else if (lastHasCon) {
+					auto lastCon = static_cast<ConFuncBlock*>(static_cast<MultFuncBlock*>(*lastIt)->getContainer()->front());
+					lastCon->setNum(lastCon->getNum() + 1.0);
+					(*lastIt)->clear();//清除hash
+					delete* it;
+					funcContainer->erase(it);
+					it = lastIt;
+				}
+				else if (tHasCon) {
+					auto tCon = static_cast<ConFuncBlock*>(static_cast<MultFuncBlock*>(*it)->getContainer()->front());
+					tCon->setNum(tCon->getNum() + 1.0);
+					(*it)->clear();
+					delete* lastIt;
+					funcContainer->erase(lastIt);
+				}
+				else {//如果两个都没有常系数，那么直接生成
+					MultFuncBlock* multFunc = new MultFuncBlock;
+					multFunc->setTag(MULTBLOCK);
+					ConFuncBlock* conFunc = new ConFuncBlock;
+					conFunc->setTag(CONBLOCK);
+					conFunc->setNum(2.0);
+					multFunc->addFunc(conFunc);
+					multFunc->addFunc(*it);
+					delete* lastIt;//删去前一个
+					funcContainer->erase(lastIt);
+					*it = multFunc;//将it替换成multFunc
 
-					}
 				}
 			}
 
@@ -142,7 +128,7 @@ namespace FuncDre {
 				continue;
 			}
 			else if (tag == MULTBLOCK) {
-				auto frontFunc = static_cast<OperFuncBlock*>(*it)->getContainer()->front();
+				auto frontFunc = static_cast<MultFuncBlock*>(*it)->getContainer()->front();
 				if (frontFunc->getTag() == CONBLOCK ) {
 					if (static_cast<ConFuncBlock*>(frontFunc)->getNum() == 0) {//系数为0，直接删去
 						delete* it;
@@ -151,26 +137,27 @@ namespace FuncDre {
 					}
 					else if (static_cast<ConFuncBlock*>(frontFunc)->getNum() == 1) {//如果系数为1，忽略系数
 						delete frontFunc;
-						auto subContainer = static_cast<OperFuncBlock*>(*it)->getContainer();
+						auto subContainer = static_cast<MultFuncBlock*>(*it)->getContainer();
 						subContainer->pop_front();
 					}
 				}
 			}
 			it++;
 		}
+		backward(absFuncBlock);
 	}
 
 	void AbsFuncReducer::multSimplify(AbsFuncBlock*& absFuncBlock) {//需要幂指类完成指数上移
-		auto funcContainer = static_cast<OperFuncBlock*>(absFuncBlock)->getContainer();
+		auto funcContainer = static_cast<MultFuncBlock*>(absFuncBlock)->getContainer();
 		for (auto& it : *funcContainer) {//逐一化简
 			if (isBas(it)) {
 				continue;
 			}
 			(this->*(simpMap->at(it->getTag())))(it);
 		}
-		funcContainer->sort([](AbsFuncBlock* const subFunc1,AbsFuncBlock* const subFunc2) {//lambda排序
+		funcContainer->sort([=](AbsFuncBlock* const subFunc1,AbsFuncBlock* const subFunc2)->int {//lambda排序
 				if (subFunc1->getTag() == subFunc2->getTag()) {
-					return subFunc1->hashCode() < subFunc2->hashCode();
+					return getPureHash(subFunc1) < getPureHash(subFunc2);
 				}
 				else {
 					return subFunc1->getTag() < subFunc2->getTag();
@@ -222,7 +209,7 @@ namespace FuncDre {
 					funcContainer->erase(lastIt);
 				}
 				else {//形如x*x类型，需要new一个幂函数
-					GnlFuncBlock* conPwrFunc = new GnlFuncBlock;
+					GnlFuncBlock* conPwrFunc = new UniPwrBlock;
 					conPwrFunc->setTag(CONPWRBLOCK);
 					conPwrFunc->setBottomFunc(*it);
 					ConFuncBlock* conFunc = new ConFuncBlock;
@@ -296,11 +283,10 @@ namespace FuncDre {
 			(this->*simpMap->at(innerFunc->getTag()))(innerFunc);//内部化简
 			switch (innerFunc->getTag()) {
 			case CONPWRBLOCK: {
-				innerFunc = innerFunc->copy();
 				if (isBas(innerFunc)) {
 					break;
 				}
-				auto innerGnlFunc = static_cast<GnlFuncBlock*>(innerFunc)->copy();
+				auto innerGnlFunc = static_cast<UniPwrBlock*>(innerFunc)->copy();//注意是幂函数
 				auto innerCon = static_cast<ConFuncBlock*>(innerGnlFunc->getTopFunc());//内部需要经过一次拷贝
 				auto theCon = static_cast<ConFuncBlock*>(theFunc->getTopFunc());
 				innerCon->setNum(theCon->getNum() * innerCon->getNum());
@@ -310,14 +296,20 @@ namespace FuncDre {
 				break;
 			}
 			case BASPWRBLOCK: case GNLPWRBLOCK: {//需要防止乘法套乘法。
-				auto innerGnlFunc = static_cast<GnlFuncBlock*>(innerFunc)->copy();
+				GnlFuncBlock* innerGnlFunc;
+				if (innerFunc->getTag() == BASPWRBLOCK) {
+					innerGnlFunc = static_cast<UniPwrBlock*>(innerFunc)->copy();
+				}
+				else {
+					innerGnlFunc = static_cast<GnlFuncBlock*>(innerFunc)->copy();
+				}
 				if (innerGnlFunc->getTopFunc()->getTag() == MULTBLOCK) {
-					static_cast<OperFuncBlock*>(innerGnlFunc->getTopFunc())->addFunc(theFunc->getTopFunc()->copy());
+					static_cast<MultFuncBlock*>(innerGnlFunc->getTopFunc())->addFunc(theFunc->getTopFunc()->copy());
 					auto innerTopFunc = innerGnlFunc->getTopFunc();
 					(this->*simpMap->at(MULTBLOCK))(innerTopFunc);//再次化简
 				}
 				else {
-					auto multFunc = new OperFuncBlock;
+					auto multFunc = new MultFuncBlock;
 					multFunc->setTag(MULTBLOCK);
 					multFunc->addFunc(theFunc->getTopFunc()->copy());
 					multFunc->addFunc(innerGnlFunc->getTopFunc());
@@ -377,7 +369,7 @@ namespace FuncDre {
 
 	bool AbsFuncReducer::hasCon(AbsFuncBlock*& absFuncBlock) {
 		if (absFuncBlock->getTag() == MULTBLOCK) {
-			auto multFuncBlock = static_cast<OperFuncBlock*>(absFuncBlock);
+			auto multFuncBlock = static_cast<MultFuncBlock*>(absFuncBlock);
 			auto frontFunc = multFuncBlock->getContainer()->front();
 			if (frontFunc->getTag() == CONBLOCK) {
 				return true;
@@ -393,10 +385,24 @@ namespace FuncDre {
 		return false;
 	}
 
+	int AbsFuncReducer::getPureHash(AbsFuncBlock* absFuncBlock) {
+		switch (absFuncBlock->getTag()) {
+		case MULTBLOCK: {
+			return static_cast<MultFuncBlock*>(absFuncBlock)->pureHashCode();
+		}
+		case CONPWRBLOCK: case BASPWRBLOCK:{
+			return static_cast<UniPwrBlock*>(absFuncBlock)->pureHashCode();
+		}
+		default: {
+			return absFuncBlock->hashCode();
+		}
+		}
+	}
+
 	void AbsFuncReducer::backward(AbsFuncBlock*& absFuncBlock) {//对自身的检查，子项合并退化之后再检查。
 		switch (absFuncBlock->getTag()) {
 		case ADDBLOCK:case MULTBLOCK: {
-			auto funcContainer = static_cast<OperFuncBlock*>(absFuncBlock)->getContainer();
+			auto funcContainer = static_cast<AddFuncBlock*>(absFuncBlock)->getContainer();
 			if (funcContainer->size() == 0) {//只剩0项
 				auto conFunc = new ConFuncBlock;
 				conFunc->setNum(0);

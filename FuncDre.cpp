@@ -3,7 +3,7 @@
 
 #include"FuncLoader.h"
 #include"AbsFuncWriter.h"
-#include"AbsFuncReducer.h"
+//#include"AbsFuncReducer.h"
 #include<iostream>
 using namespace FuncDre;
 int main()
@@ -14,7 +14,7 @@ int main()
     funLoader->load(s);
     AbsFuncBlock* absFuncBlock = funLoader->getFinalFunc();
 
-    AbsFuncWriter* fw = new AbsFuncWriter;
+  /*  AbsFuncWriter* fw = new AbsFuncWriter;
     std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
     
     AbsFuncReducer* afr = new AbsFuncReducer;
@@ -22,9 +22,10 @@ int main()
     std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
     
     delete afr;
+    delete fw;*/
     delete funLoader;
     delete absFuncBlock;
-    delete fw;
+    
     return 0;
 }
 

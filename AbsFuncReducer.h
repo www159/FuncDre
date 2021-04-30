@@ -44,6 +44,8 @@ private:
 	bool hasCon(AbsFuncBlock*&);
 	//是不是基本元素？
 	bool isBas(AbsFuncBlock*&);
+	//得到纯哈希
+	int getPureHash(AbsFuncBlock* absFuncBlock);
 	//一般退化检查
 	void backward(AbsFuncBlock*&);
 };

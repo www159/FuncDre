@@ -8,8 +8,8 @@ namespace FuncDre {
 		conQue		=	new std::queue<AbsFuncBlock*>;
 		comQue		=	new std::queue<AbsFuncBlock*>;
 		bacQue		=	new std::queue<int>;
-		AddStack	=	new std::stack<OperFuncBlock*>;
-		MulStack	=	new std::stack<OperFuncBlock*>;
+		AddStack	=	new std::stack<AddFuncBlock*>;
+		MulStack	=	new std::stack<MultFuncBlock*>;
 	}
 
 
@@ -174,7 +174,7 @@ namespace FuncDre {
 					break;
 				}
 				default: {
-					OperFuncBlock* multFuncBlock = new OperFuncBlock;
+					MultFuncBlock* multFuncBlock = new MultFuncBlock;
 					multFuncBlock->addFunc(pollBlockInStack(lastSign2, temStack));
 					multFuncBlock->addFunc(pwrFuncBlock);
 					multFuncBlock->setTag(MULTBLOCK);
@@ -186,22 +186,25 @@ namespace FuncDre {
 				break;
 			}
 
-			case PWR: {
-				GnlFuncBlock* pwrFuncBlock = new GnlFuncBlock;
+			case PWR: {//改写为Uni
+				GnlFuncBlock* pwrFuncBlock;
 				pollHisInSignStack(lastSign, lastSign2, signStack);
-				pwrFuncBlock->setTopFunc(pollBlockInStack(lastSign, temStack));
-				pwrFuncBlock->setBottomFunc(pollBlockInStack(lastSign2, temStack));
 				if (lastSign == CON) {
+					pwrFuncBlock = new UniPwrBlock;
 					pwrFuncBlock->setTag(CONPWRBLOCK);
 				}
 				else if (lastSign2 == CON) {
+					pwrFuncBlock = new UniPwrBlock;
 					pwrFuncBlock->setTag(BASPWRBLOCK);
 				}
 				else {
+					pwrFuncBlock = new GnlFuncBlock;
 					pwrFuncBlock->setTag(GNLPWRBLOCK);
 				}
 				temStack->push(pwrFuncBlock);
 				signStack->push(PWR);
+				pwrFuncBlock->setTopFunc(pollBlockInStack(lastSign, temStack));
+				pwrFuncBlock->setBottomFunc(pollBlockInStack(lastSign2, temStack));
 				break;
 			}
 
@@ -213,7 +216,7 @@ namespace FuncDre {
 					AddStack->top()->addFunc(pollBlockInStack(lastSign, temStack));
 					break;
 				default://从临时栈中选两个压进加法栈
-					OperFuncBlock* addFuncBlock = new OperFuncBlock;
+					AddFuncBlock* addFuncBlock = new AddFuncBlock;
 					//保证后缀表达式准确无误
 					addFuncBlock->addFunc(pollBlockInStack(lastSign, temStack));
 					addFuncBlock->addFunc(pollBlockInStack(lastSign2, temStack));
@@ -233,7 +236,7 @@ namespace FuncDre {
 					MulStack->top()->addFunc(pollBlockInStack(lastSign, temStack));
 					break;
 				default:
-					OperFuncBlock* multFuncBlock = new OperFuncBlock;
+					MultFuncBlock* multFuncBlock = new MultFuncBlock;
 					//保证后缀表达式准确无误
 					multFuncBlock->addFunc(pollBlockInStack(lastSign, temStack));
 					multFuncBlock->addFunc(pollBlockInStack(lastSign2, temStack));

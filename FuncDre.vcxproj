@@ -153,6 +153,7 @@
     <ClInclude Include="AbsFuncDerivator.h" />
     <ClInclude Include="AbsFuncReducer.h" />
     <ClInclude Include="AbsFuncWriter.h" />
+    <ClInclude Include="ClearHash.h" />
     <ClInclude Include="Clonable.h" />
     <ClInclude Include="FuncLoader.h" />
     <ClInclude Include="Hashable.h" />

@@ -37,6 +37,11 @@ namespace FuncDre {
 		return absFuncBlock;
 	}
 
+	void AbsFuncBlock::clear() {
+		delete hash;
+		hash = NULL;
+	}
+
 
 
 	/*
@@ -57,7 +62,7 @@ namespace FuncDre {
 		for (*hash = str.length(), i = 0; i < str.length(); ++i)
 			*hash = (*hash << 4) ^ (*hash >> 28) ^ str[i];
 
-		*hash %= 99999989;
+		*hash %= pr;
 		return *hash;
 	}
 
@@ -65,7 +70,7 @@ namespace FuncDre {
 		return num;
 	}
 
-	void ConFuncBlock::setNum(double num) {
+	void ConFuncBlock::setNum(double num) {//默认清空hash
 		this->num = num;
 		delete hash;
 		hash = NULL;
@@ -83,19 +88,18 @@ namespace FuncDre {
 	/*
 	*	运算函数块
 	*/
-	OperFuncBlock::OperFuncBlock() {
+	AddFuncBlock::AddFuncBlock() {
 		FuncContainer = new std::list<AbsFuncBlock*>;
 	}
 
-	OperFuncBlock::~OperFuncBlock() {
+	AddFuncBlock::~AddFuncBlock() {
 		for (std::list<AbsFuncBlock*>::iterator it = FuncContainer->begin(); it != FuncContainer->end(); it++) {
 			delete* it;
 		}
 		delete FuncContainer;
-		delete pureHash;
 	}
 
-	int OperFuncBlock::hashCode() {
+	int AddFuncBlock::hashCode() {
 		if (hash != NULL) {
 			return *hash;
 		}
@@ -108,28 +112,66 @@ namespace FuncDre {
 			*hash = (*hash << 4) ^ (*hash >> 28) ^ (*it)->hashCode();
 			it++;
 		}
-		*hash %= 99999989;
+		*hash %= pr;
 		return *hash;
 	}
 
-	std::list<AbsFuncBlock*>* OperFuncBlock::getContainer() {
+	std::list<AbsFuncBlock*>* AddFuncBlock::getContainer() {
 		return this->FuncContainer;
 	}
 
-	void OperFuncBlock::addFunc(AbsFuncBlock* absFuncBlock) {
+	void AddFuncBlock::addFunc(AbsFuncBlock* absFuncBlock) {
 		FuncContainer->push_back(absFuncBlock);
 	}
 
-	OperFuncBlock* OperFuncBlock::copy() {
-		OperFuncBlock* operFuncBlock = new OperFuncBlock;
+	AddFuncBlock* AddFuncBlock::copy() {
+		AddFuncBlock* addFuncBlock = new AddFuncBlock;
 		for (auto& it : *FuncContainer) {
-			operFuncBlock->addFunc(it->copy());
+			addFuncBlock->addFunc(it->copy());
 		}
-		operFuncBlock->setTag(tag);
-		return operFuncBlock;
+		addFuncBlock->setTag(tag);
+		return addFuncBlock;
 	}
 
+	MultFuncBlock::MultFuncBlock() {
+		pureHash = NULL;
+	}
 
+	MultFuncBlock::~MultFuncBlock() {
+		delete pureHash;
+	}
+
+	int MultFuncBlock::pureHashCode() {
+		if (pureHash != NULL) {
+			return *pureHash;
+		}
+		pureHash = new int;
+		*pureHash = '*';
+		for (auto& it : *FuncContainer) {
+			if (it->getTag() == CONBLOCK) {
+				continue;
+			}
+			*pureHash = (*pureHash << 4) ^ (*pureHash >> 28) ^ it->hashCode();
+		}
+		*pureHash %= pr;
+		return *pureHash;
+	}
+
+	MultFuncBlock* MultFuncBlock::copy() {
+		MultFuncBlock* multFuncBlock = new MultFuncBlock;
+		for (auto& it : *FuncContainer) {
+			multFuncBlock->addFunc(it->copy());
+		}
+		multFuncBlock->setTag(MULTBLOCK);
+		return multFuncBlock;
+	}
+
+	void MultFuncBlock::clear() {
+		delete hash, pureHash;
+		hash = NULL;
+		pureHash = NULL;
+
+	}
 
 	/*
 	*	复合函数块，通用块的阉割版
@@ -166,6 +208,7 @@ namespace FuncDre {
 		}
 		}
 		*hash = (*hash << 4) ^ (*hash >> 28) ^ innerFunc->hashCode();
+		*hash %= pr;
 		return *hash;
 	}
 
@@ -205,22 +248,9 @@ namespace FuncDre {
 
 		hash = new int;
 		*hash = '^';
-		switch (tag) {
-		case CONPWRBLOCK: {
-			*hash = (*hash << 4) ^ (*hash >> 28) ^ bottomBlock->hashCode();
-			break;
-		}
-		case BASPWRBLOCK: {
-			*hash = (*hash << 4) ^ (*hash >> 28) ^ topBlock->hashCode();
-			break;
-		}
-		case GNLPWRBLOCK: {
-			*hash = (*hash << 4) ^ (*hash >> 28) ^ bottomBlock->hashCode();
-			*hash = (*hash << 4) ^ (*hash >> 28) ^ topBlock->hashCode();
-			break;
-		}
-		}
-		*hash %= 99999989;
+		*hash = (*hash << 4) ^ (*hash >> 28) ^ bottomBlock->hashCode();
+		*hash = (*hash << 4) ^ (*hash >> 28) ^ topBlock->hashCode();
+		*hash %= pr;
 		return *hash;
 	}
 
@@ -247,4 +277,52 @@ namespace FuncDre {
 		gnlFuncBlock->setTag(tag);
 		return gnlFuncBlock;
 	}
+
+
+
+	UniPwrBlock::UniPwrBlock() {
+		pureHash = NULL;
+	}
+
+	UniPwrBlock::~UniPwrBlock() {
+		delete pureHash;
+	}
+
+	int UniPwrBlock::pureHashCode() {
+		if (pureHash != NULL) {
+			return *pureHash;
+		}
+
+		pureHash = new int;
+		*pureHash = (tag << 4) ^ (tag >> 28);
+		switch (tag)
+		{
+		case CONPWRBLOCK: {
+			*pureHash ^= bottomBlock->hashCode();
+			break;
+		}
+		default: {
+			*pureHash ^= topBlock->hashCode();
+			break;
+		}
+		}
+
+		*pureHash %= pr;
+		return *pureHash;
+	}
+
+	UniPwrBlock* UniPwrBlock::copy() {
+		UniPwrBlock* uniPwrBlock = new UniPwrBlock;
+		uniPwrBlock->setTopFunc(topBlock->copy());
+		uniPwrBlock->setBottomFunc(bottomBlock->copy());
+		uniPwrBlock->setTag(tag);
+		return uniPwrBlock;
+	}
+
+	void UniPwrBlock::clear() {
+		delete hash, pureHash;
+		hash = NULL;
+		pureHash = NULL;
+	}
 }
+

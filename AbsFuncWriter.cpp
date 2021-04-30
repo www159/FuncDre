@@ -36,13 +36,13 @@ namespace FuncDre {
 	}
 
 	void AbsFuncWriter::addWriter(AbsFuncBlock* absFuncBlock, std::string& str) {
-		OperFuncBlock* addFuncBlock = static_cast<OperFuncBlock*>(absFuncBlock);
+		AddFuncBlock* addFuncBlock = static_cast<AddFuncBlock*>(absFuncBlock);
 		std::list<AbsFuncBlock*>* funcContainer = addFuncBlock->getContainer();
 
 		for (std::list<AbsFuncBlock*>::iterator it = funcContainer->begin(); it != funcContainer->end(); it++) {
 			switch ((*it)->getTag()) {
 			case MULTBLOCK: {
-				OperFuncBlock* subMultBlock = static_cast<OperFuncBlock*>(*it);
+				MultFuncBlock* subMultBlock = static_cast<MultFuncBlock*>(*it);
 				std::list<AbsFuncBlock*>* subMultContainer = subMultBlock->getContainer();
 
 				if (subMultContainer->front()->getTag() == CONBLOCK) {//如果带了系数
@@ -75,7 +75,7 @@ namespace FuncDre {
 
 	void AbsFuncWriter::multWriter(AbsFuncBlock* absFuncBlock, std::string& str) {//试试auto
 		//加法顺带解决了乘法的系数问题，只管输出。
-		auto multFuncBlock = static_cast<OperFuncBlock*>(absFuncBlock);
+		auto multFuncBlock = static_cast<MultFuncBlock*>(absFuncBlock);
 		auto funcContainer = multFuncBlock->getContainer();
 		int tag;
 		for (auto it = funcContainer->begin(); it != funcContainer->end(); it++) {
