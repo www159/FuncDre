@@ -14,7 +14,7 @@ int main()
     funLoader->load(s);
     AbsFuncBlock* absFuncBlock = funLoader->getFinalFunc();
 
-  /*  AbsFuncWriter* fw = new AbsFuncWriter;
+  AbsFuncWriter* fw = new AbsFuncWriter;
     std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
     
     AbsFuncReducer* afr = new AbsFuncReducer;
@@ -22,7 +22,7 @@ int main()
     std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
     
     delete afr;
-    delete fw;*/
+    delete fw;
     delete funLoader;
     delete absFuncBlock;
     

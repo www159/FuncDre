@@ -79,7 +79,7 @@ namespace FuncDre {
 					auto lastCon = static_cast<ConFuncBlock*>(static_cast<MultFuncBlock*>(*lastIt)->getContainer()->front());
 					auto tCon = static_cast<ConFuncBlock*>(static_cast<MultFuncBlock*>(*it)->getContainer()->front());
 					tCon->setNum(lastCon->getNum() + tCon->getNum());//未经深拷贝直接修改
-					lastCon->clear();//修改后清空两个hash
+					(*it)->clear();//修改后清空两个hash
 					delete* lastIt;
 					funcContainer->erase(lastIt);
 
@@ -179,7 +179,7 @@ namespace FuncDre {
 				delete* lastIt;
 				funcContainer->erase(lastIt);
 			}
-			else if ((*lastIt)->hashCode() == (*it)->hashCode()) {//向右归并
+			else if ((*it)->getTag() == (*lastIt)->getTag() && getPureHash(*it) == getPureHash(*lastIt)) {//向右归并
 
 				if (lastTag == BASPWRBLOCK && tag == BASPWRBLOCK) {//都是指数函数，底数相乘
 					auto conFunc = static_cast<ConFuncBlock*>(static_cast<GnlFuncBlock*>(*it)->getBottomFunc());
@@ -346,6 +346,9 @@ namespace FuncDre {
 			return;
 		}
 		(this->*simpMap->at(innerFunc->getTag()))(innerFunc);
+		if (theFunc->getFunc() != innerFunc) {//根据地址判断内部函数是否被修改
+			theFunc->setFunc(innerFunc);
+		}
 		switch (absFuncBlock->getTag()) {
 		case LOGBLOCK: {//TODO log化简
 
