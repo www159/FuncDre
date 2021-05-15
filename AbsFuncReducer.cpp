@@ -59,7 +59,7 @@ namespace FuncDre {
 		int lastTag = (*it)->getTag();
 		int tag;
 		it++;
-		while (it != funcContainer->end()) {
+		while (it != funcContainer->end()) {//TODO 分支过于臃肿，常数判断和纯hash可以合并
 			tag = (*it)->getTag();
 			if (lastTag == CONBLOCK && tag == CONBLOCK) {//都是常数，向右合并
 
@@ -70,7 +70,7 @@ namespace FuncDre {
 				funcContainer->erase(lastIt);
 			}
 
-			else if ((*lastIt)->getTag() == (*it)->getTag() && getPureHash(*it) == getPureHash(*lastIt)) {//如果除系数外完全一致
+			else if (isSame(*lastIt, *it) && getPureHash(*it) == getPureHash(*lastIt)) {//如果除系数外完全一致
 				//那么就要区分是否带系数。
 				bool lastHasCon = hasCon(*lastIt),
 					tHasCon = hasCon(*it),
@@ -179,7 +179,7 @@ namespace FuncDre {
 				delete* lastIt;
 				funcContainer->erase(lastIt);
 			}
-			else if ((*it)->getTag() == (*lastIt)->getTag() && getPureHash(*it) == getPureHash(*lastIt)) {//向右归并
+			else if (isSame(*it, *lastIt)&& getPureHash(*it) == getPureHash(*lastIt)) {//向右归并
 
 				if (lastTag == BASPWRBLOCK && tag == BASPWRBLOCK) {//都是指数函数，底数相乘
 					auto conFunc = static_cast<ConFuncBlock*>(static_cast<GnlFuncBlock*>(*it)->getBottomFunc());
@@ -281,6 +281,9 @@ namespace FuncDre {
 				break;
 			}
 			(this->*simpMap->at(innerFunc->getTag()))(innerFunc);//内部化简
+			if (theFunc->getBottomFunc() != innerFunc){//地址判断
+				theFunc->setBottomFunc(innerFunc);
+			}
 			switch (innerFunc->getTag()) {
 			case CONPWRBLOCK: {
 				if (isBas(innerFunc)) {
@@ -329,6 +332,9 @@ namespace FuncDre {
 				return;
 			}
 			(this->*simpMap->at(innerFunc->getTag()))(innerFunc);
+			if (theFunc->getTopFunc() != innerFunc) {
+				theFunc->setTopFunc(innerFunc);
+			}
 			break;
 		}
 		case GNLPWRBLOCK: {//TODO幂指函数未完成
@@ -385,6 +391,42 @@ namespace FuncDre {
 		if (absFuncBlock->getTag() == CONBLOCK || absFuncBlock->getTag() == BASBLOCK) {
 			return true;
 		}
+		return false;
+	}
+
+	bool AbsFuncReducer::isSame(AbsFuncBlock* func1, AbsFuncBlock* func2) {//根据优先级中断
+		if (func1->getTag() == func2->getTag()) {
+			return true;
+		}
+		
+		if (func1->getTag() == CONPWRBLOCK) {
+			auto unFunc = static_cast<UniPwrBlock*>(func1);
+			if (unFunc->getBottomFunc()->getTag() == func2->getTag()) {
+				return true;
+			}
+		}
+		else if (func1->getTag() == MULTBLOCK) {
+			auto muFunc = static_cast<MultFuncBlock*>(func1);
+			auto muFuncBac = muFunc->getContainer()->back();
+			if (muFuncBac->getTag() == func2->getTag()) {
+				return true;
+			}
+		}
+
+		if (func2->getTag() == CONPWRBLOCK) {
+			auto unFunc = static_cast<UniPwrBlock*>(func2);
+			if (unFunc->getBottomFunc()->getTag() == func1->getTag()) {
+				return true;
+			}
+		}
+		else if (func2->getTag() == MULTBLOCK) {
+			auto muFunc = static_cast<MultFuncBlock*>(func2);
+			if (muFunc->getContainer()->back()->getTag() == func1->getTag()) {
+				return true;
+			}
+		}
+
+
 		return false;
 	}
 

@@ -101,6 +101,12 @@ namespace FuncDre {
 					}
 				}
 				else {
+					if ((*it)->getTag() == CONBLOCK) {
+						if (static_cast<ConFuncBlock*>(*it)->getNum() == -1) {
+							str = str + '-';
+							break;
+						}
+					}
 					(this->*writerContainer[tag])(*it, str);
 				}
 				break;

@@ -46,7 +46,7 @@ namespace FuncDre {
 		//对数
 		void logWriter(AbsFuncBlock*, std::string&);
 		//正弦
-		void	sinWriter(AbsFuncBlock*, std::string&);
+		void sinWriter(AbsFuncBlock*, std::string&);
 		//余弦
 		void cosWriter(AbsFuncBlock*, std::string&);
 		//正切

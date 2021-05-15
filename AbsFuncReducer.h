@@ -44,6 +44,8 @@ private:
 	bool hasCon(AbsFuncBlock*&);
 	//是不是基本元素？
 	bool isBas(AbsFuncBlock*&);
+	//判断纯hash函数是否等价。
+	bool isSame(AbsFuncBlock*, AbsFuncBlock*);
 	//得到纯哈希
 	int getPureHash(AbsFuncBlock*);
 	//一般退化检查

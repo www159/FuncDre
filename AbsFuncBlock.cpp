@@ -146,12 +146,16 @@ namespace FuncDre {
 			return *pureHash;
 		}
 		pureHash = new int;
-		*pureHash = '*';
+		int cnt = 0;
 		for (auto& it : *FuncContainer) {
 			if (it->getTag() == CONBLOCK) {
+				cnt++;
 				continue;
 			}
 			*pureHash = (*pureHash << 4) ^ (*pureHash >> 28) ^ it->hashCode();
+		}
+		if (cnt + 1 == FuncContainer->size()) {//如果是孤单项
+			*pureHash = FuncContainer->back()->hashCode();
 		}
 		*pureHash %= pr;
 		return *pureHash;
@@ -294,15 +298,14 @@ namespace FuncDre {
 		}
 
 		pureHash = new int;
-		*pureHash = (tag << 4) ^ (tag >> 28);
 		switch (tag)
 		{
 		case CONPWRBLOCK: {
-			*pureHash ^= bottomBlock->hashCode();
+			*pureHash = bottomBlock->hashCode();
 			break;
 		}
 		default: {
-			*pureHash ^= topBlock->hashCode();
+			*pureHash = topBlock->hashCode();
 			break;
 		}
 		}

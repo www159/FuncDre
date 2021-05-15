@@ -201,10 +201,10 @@ namespace FuncDre {
 					pwrFuncBlock = new GnlFuncBlock;
 					pwrFuncBlock->setTag(GNLPWRBLOCK);
 				}
-				temStack->push(pwrFuncBlock);
 				signStack->push(PWR);
 				pwrFuncBlock->setTopFunc(pollBlockInStack(lastSign, temStack));
-				pwrFuncBlock->setBottomFunc(pollBlockInStack(lastSign2, temStack));
+				pwrFuncBlock->setBottomFunc(pollBlockInStack(lastSign2, temStack));//先出栈，再入栈。
+				temStack->push(pwrFuncBlock);
 				break;
 			}
 

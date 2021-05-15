@@ -50,8 +50,6 @@ namespace FuncDre {
 
 		int* hash = NULL;
 
-		const int pr = 1e9 + 7;
-
 	};
 
 
@@ -99,7 +97,7 @@ namespace FuncDre {
 		std::list<AbsFuncBlock*>* getContainer();
 
 		//向作用域中增加函数。
-		void addFunc(AbsFuncBlock* absFuncBlock);
+		void addFunc(AbsFuncBlock*);
 
 		AddFuncBlock* copy() override;
 
