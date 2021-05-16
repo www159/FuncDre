@@ -10,7 +10,7 @@ using namespace FuncDre;
 int main()
 {
     FuncLoader* funLoader = new FuncLoader;
-    std::string s = "ln(2x)";
+    std::string s = "(sin(x^2))^2";
 
     funLoader->load(s);
     AbsFuncBlock* absFuncBlock = funLoader->getFinalFunc();

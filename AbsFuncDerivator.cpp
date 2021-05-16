@@ -1,4 +1,5 @@
 #include "AbsFuncDerivator.h"
+#include<math.h>
 
 namespace FuncDre {
 	AbsFuncDerivator::AbsFuncDerivator(){
@@ -70,15 +71,31 @@ namespace FuncDre {
 	}
 
 	void AbsFuncDerivator::conPwrDerivate(AbsFuncBlock*& absFuncBlock) {
+		auto conPwrFunc = static_cast<GnlFuncBlock*>(absFuncBlock);
+		auto conFunc = static_cast<ConFuncBlock*>(conPwrFunc->getTopFunc());
+		auto innerFunc = conPwrFunc->getBottomFunc()->copy();
 
+		(this->*(dervMap->at(innerFunc->getTag())))(innerFunc);
+		
+		absFuncBlock = combMerge(innerFunc, conPwrFunc);
+		absFuncBlock = combMerge(absFuncBlock, conFunc->copy());
+		conFunc->setNum(conFunc->getNum() - 1.0);
 	}
 
 	void AbsFuncDerivator::basPwrDerivate(AbsFuncBlock*& absFuncBlock) {
+		auto basPwrFunc = static_cast<GnlFuncBlock*>(absFuncBlock);
+		auto conFunc = static_cast<ConFuncBlock*>(basPwrFunc->getBottomFunc()->copy());
 
+		auto innerFunc = basPwrFunc->getTopFunc()->copy();
+		(this->*(dervMap->at(innerFunc->getTag())))(innerFunc);
+		conFunc->setNum(log(conFunc->getNum()));
+
+		absFuncBlock = combMerge(innerFunc, basPwrFunc);
+		absFuncBlock = combMerge(absFuncBlock, conFunc);//并入系数
 	}
 
 	void AbsFuncDerivator::gnlPwrDerivate(AbsFuncBlock*& absFuncBlock) {
-
+		//待写
 	}
 
 	void AbsFuncDerivator::sinDerivate(AbsFuncBlock*& absFuncBlock) {
