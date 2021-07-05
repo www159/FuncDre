@@ -10,24 +10,24 @@ using namespace FuncDre;
 int main()
 {
     FuncLoader* funLoader = new FuncLoader;
-    std::string s = "(sin(x^2))^2";
+    std::string s = "cos(x)^2*x^3-x^4";
 
     funLoader->load(s);
     AbsFuncBlock* absFuncBlock = funLoader->getFinalFunc();
 
   AbsFuncWriter* fw = new AbsFuncWriter;
-    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
+    std::cout <<"函数对象翻译为字符串（未化简）f(x)="<< (fw->writeFunc(absFuncBlock)) << std::endl;
     
     AbsFuncReducer* afr = new AbsFuncReducer;
     afr->reduc(absFuncBlock);
-    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
+    std::cout <<"函数对象翻译为字符串（化简）  f(x)="<< (fw->writeFunc(absFuncBlock)) << std::endl;
     
     AbsFuncDerivator* afd = new AbsFuncDerivator;
     afd->dervt(absFuncBlock);
-    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
+    std::cout <<"求导后（未化简）              f(x)="<<(fw->writeFunc(absFuncBlock)) << std::endl;
 
     afr->reduc(absFuncBlock);
-    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
+    std::cout <<"求导后（化简）                f(x)="<< (fw->writeFunc(absFuncBlock)) << std::endl;
 
     delete afd;
     delete afr;

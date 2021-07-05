@@ -55,6 +55,7 @@ namespace FuncDre {
 		str = regex_replace(str, Minu, minuRep);	//将减号(不是负号)转化为(-1)*
 		str = regex_replace(str, Minu2, minuRep2);	//转化起始负号
 		str = regex_replace(str, Time, timeRep);	//添加完全乘
+		str = regex_replace(str, Time, timeRep);	//添加完全乘
 		str = regex_replace(str, Pos, posRep);		//去除无效正号
 		str = regex_replace(str, Pos2, posRep2);	//去除开头无效正号
 

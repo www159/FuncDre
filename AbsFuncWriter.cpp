@@ -4,17 +4,17 @@ namespace FuncDre {
 
 
 	AbsFuncWriter::AbsFuncWriter() {//每一个伟大的算法都有一个伟大的预处理,根据tag映射的函数数组。
-		writerContainer[0]	=	&AbsFuncWriter::conWriter;
-		writerContainer[1]	=	&AbsFuncWriter::basWriter;
-		writerContainer[2]	=	&AbsFuncWriter::addWriter;
-		writerContainer[3]	=	&AbsFuncWriter::multWriter;
-		writerContainer[4]	=	&AbsFuncWriter::gnlPwrWriter;
-		writerContainer[5]	=	&AbsFuncWriter::gnlPwrWriter;
-		writerContainer[6]	=	&AbsFuncWriter::gnlPwrWriter;
-		writerContainer[7]	=	&AbsFuncWriter::logWriter;
-		writerContainer[8]	=	&AbsFuncWriter::sinWriter;
-		writerContainer[9]	=	&AbsFuncWriter::cosWriter;
-		writerContainer[10] =	&AbsFuncWriter::tanWriter;
+		writerContainer[0] = &AbsFuncWriter::conWriter;
+		writerContainer[1] = &AbsFuncWriter::basWriter;
+		writerContainer[2] = &AbsFuncWriter::addWriter;
+		writerContainer[3] = &AbsFuncWriter::multWriter;
+		writerContainer[4] = &AbsFuncWriter::gnlPwrWriter;
+		writerContainer[5] = &AbsFuncWriter::gnlPwrWriter;
+		writerContainer[6] = &AbsFuncWriter::gnlPwrWriter;
+		writerContainer[7] = &AbsFuncWriter::logWriter;
+		writerContainer[8] = &AbsFuncWriter::sinWriter;
+		writerContainer[9] = &AbsFuncWriter::cosWriter;
+		writerContainer[10] = &AbsFuncWriter::tanWriter;
 		//反三角待定。
 	}
 
@@ -48,15 +48,20 @@ namespace FuncDre {
 				if (subMultContainer->front()->getTag() == CONBLOCK) {//如果带了系数
 					ConFuncBlock* cons = static_cast<ConFuncBlock*>(subMultContainer->front());
 					if (cons->getNum() < 0) {//如果系数为负。
-						cons->setNum(-cons->getNum());
-						str = str + "-";
+						//cons->setNum(-cons->getNum());
+						//str = str + "-";
+					}
+					else {
+						if (it != funcContainer->begin()) {
+							str = str + "+";
+						}
+
 					}
 				}
 				else {
-					if (it == funcContainer->begin()) {
-						break;
+					if (it != funcContainer->begin()) {
+						str = str + "+";
 					}
-					str = str + "+";
 				}
 				break;
 			}
@@ -64,7 +69,7 @@ namespace FuncDre {
 				if (it != funcContainer->begin()) {//开头加什么正号
 					str = str + "+";
 				}
-				
+
 				break;
 			}
 			}
@@ -147,7 +152,7 @@ namespace FuncDre {
 			break;
 		}
 		}
-		
+
 		subFunc = gnlPwrBlock->getTopFunc();
 		str = str + '^';
 		tag = subFunc->getTag();
@@ -186,7 +191,7 @@ namespace FuncDre {
 		(this->*writerContainer[innerFunc->getTag()])(innerFunc, str);
 		str = str + ")";
 	}
-	
+
 	void AbsFuncWriter::sinWriter(AbsFuncBlock* absFuncBlock, std::string& str) {
 		ComFuncBlock* comFuncBlock = static_cast<ComFuncBlock*>(absFuncBlock);
 		str = str + "sin";

@@ -48,20 +48,32 @@ namespace FuncDre {
 		AddFuncBlock* addFunc = new AddFuncBlock;
 		addFunc->setTag(ADDBLOCK);
 		int pos = 0;
+		int norpos = 0;//ºóÐøÌí¼Ó
 		for (auto it = funcContainer->begin(); it != funcContainer->end();pos++, it++) {
-			if (isCon(*it)) continue;
+			if (isCon(*it)) {
+				continue;
+			}
 			auto temFunc = (*it)->copy();
-			(this->*(dervMap->at(temFunc->getTag())))(temFunc);
 			auto newMult = new MultFuncBlock;
 			newMult->setTag(MULTBLOCK);
+			(this->*(dervMap->at(temFunc->getTag())))(temFunc);
 			int npos = pos;
 			for (auto& anoit : *funcContainer) {
 				pos--;
 				if (pos == -1) {
-					newMult->addFunc(temFunc);
-					continue;
+					if (temFunc->getTag() == MULTBLOCK) {
+						for (auto& it : *static_cast<MultFuncBlock*>(temFunc)->getContainer()) {
+							newMult->addFunc(it->copy());
+						}
+						delete temFunc;
+					}
+					else {
+						newMult->addFunc(temFunc);
+					}
 				}
-				newMult->addFunc(anoit->copy());
+				else {
+					newMult->addFunc(anoit->copy());
+				}
 			}
 			pos = npos;
 			addFunc->addFunc(newMult);
