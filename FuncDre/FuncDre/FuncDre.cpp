@@ -1,31 +1,11 @@
 ﻿// FuncDre.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 
-#include"FuncLoader.h"
-#include"AbsFuncWriter.h"
-#include"AbsFuncReducer.h"
-#include<iostream>
-using namespace FuncDre;
+#include <iostream>
+
 int main()
 {
-    FuncLoader* funLoader = new FuncLoader;
-    std::string s = "4sin(4x+5x+6x)/999-sin(15x)";
-
-    funLoader->load(s);
-    AbsFuncBlock* absFuncBlock = funLoader->getFinalFunc();
-
-    AbsFuncWriter* fw = new AbsFuncWriter;
-    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
-    
-    AbsFuncReducer* afr = new AbsFuncReducer;
-    afr->reduc(absFuncBlock);
-    std::cout << (fw->writeFunc(absFuncBlock)) << std::endl;
-    
-    delete afr;
-    delete funLoader;
-    delete absFuncBlock;
-    delete fw;
-    return 0;
+    std::cout << "Hello World!\n";
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单
